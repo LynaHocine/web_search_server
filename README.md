@@ -1,4 +1,4 @@
-# Project PAI2D - HARMONI as a Model Context Protocol toll 
+# Project PAI2D - HARMONI as a Model Context Protocol tool 
 
 Our goal in this project is to implement an integration between HARMONI (codebase available at https://github.com/hamedR96/HARMONI) and the Model Context Protocol (MCP).
 
