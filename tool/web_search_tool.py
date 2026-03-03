@@ -1,6 +1,9 @@
-import requests
-from bs4 import BeautifulSoup
-import urllib.parse
+import os
+from serpapi import GoogleSearch
+from dotenv import load_dotenv
+
+# Load variables from .env into environment
+load_dotenv()
 
 def web_search_tool(query) -> dict:
     """It takes the user query (text) as input.
@@ -11,35 +14,33 @@ def web_search_tool(query) -> dict:
     if not q: 
         return {"query": q, "result": "The query is empty"}
     
-    #web tool does search with DuckDuckGo
+    api_key = os.getenv("SERPAPI_KEY")
 
-    encoded_q = urllib.parse.quote(q)
-    url = f"https://html.duckduckgo.com/html/?q={encoded_q}"
-
-    headers = {
-        "User-Agent": "Mozilla/5.0"
+    if not api_key:
+        return {"query": q, "result": "SerpAPI key not configured."}
+    
+    params = {
+        "engine": "google",
+        "q": q,
+        "api_key": api_key,
+        "num": 1
     }
 
     try:
-        res = requests.get(url, headers=headers, timeout=10)
-        res.raise_for_status()
+        search = GoogleSearch(params)
+        results = search.get_dict()
     except Exception as e:
         return {"query": q, "result": f"Request failed: {str(e)}"}
     
-    #extract the data from the html
-    soup = BeautifulSoup(res.text, "html.parser")
+    organic_results = results.get("organic_results")
 
-    #get the top result 
-    results = soup.find_all("a", class_="result__a")
-
-    if not results: 
-        return {"query":q, "result": "No results found (possibly blocked)"}
+    if not organic_results: 
+        return {"query":q, "result": "No results found"}
     
-    top = results[0].get_text()
-    title = (top.find("a", class_="result__a")).get_text()
+    top = organic_results[0]
 
-    snippet_tag = top.find_next("a", class_="result__snippet") or top.find("div", class_="result__snippet")
-    snippet = snippet_tag.get_text() if snippet_tag else "No snippet available"
+    title = top.get("title", "No title")
+    snippet = top.get("snippet", "no snippet")
 
     result = f"{title}\n{snippet}"
 
